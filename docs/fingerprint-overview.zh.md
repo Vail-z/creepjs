@@ -129,7 +129,7 @@ check.forEach((prop) => {
   const matching = isNaN(res1) && isNaN(res2) ? true : res1 == res2
   if (!matching) {
     lied = true
-    const mathLie = `expected x and got y`
+    const mathLie = `expected x and got y` // 原始实现使用固定占位文本记录差异
     documentLie(`Math.${prop}`, mathLie)
   }
 })
@@ -153,9 +153,28 @@ const errors = getErrors(errorTests)
 ```ts
 const canvas1 = document.createElement('canvas')
 const canvas2 = document.createElement('canvas')
-context1.fillRect(x, y, 1, 1)        // 写入随机像素
-const { data: [r,g,b,a] } = context1.getImageData(x, y, 1, 1) || {}
-context2.fillRect(x, y, 1, 1)        // 复制并读取差分
+const context1 = canvas1.getContext('2d')
+const context2 = canvas2.getContext('2d')
+const len = 8
+const alpha = 255
+const pattern1 = []
+const pattern2 = []
+[...Array(len)].forEach((_, x) => [...Array(len)].forEach((_, y) => {
+  const red = ~~(Math.random() * 256)
+  const green = ~~(Math.random() * 256)
+  const blue = ~~(Math.random() * 256)
+  const colors = `${red}, ${green}, ${blue}, ${alpha}`
+  context1.fillStyle = `rgba(${colors})`
+  context1.fillRect(x, y, 1, 1) // 写入随机像素
+  pattern1.push(colors)
+}))
+[...Array(len)].forEach((_, x) => [...Array(len)].forEach((_, y) => {
+  const { data: [red, green, blue, alpha] } = context1.getImageData(x, y, 1, 1) || {}
+  const colors = `${red}, ${green}, ${blue}, ${alpha}`
+  context2.fillStyle = `rgba(${colors})`
+  context2.fillRect(x, y, 1, 1) // 复制并读取差分
+  pattern2.push(colors)
+}))
 const patternDiffs = [...pattern1].map((_, i) => pattern1[i] != pattern2[i])
 ```
 
@@ -169,7 +188,7 @@ const getParamNames = () => [
   'MAX_FRAGMENT_UNIFORM_VECTORS','MAX_RENDERBUFFER_SIZE','MAX_SAMPLES',
   // 其余 WebGL getParameter 常量见源码完整列表
 ].sort()
-const draw = (gl) => { gl.clear(gl.COLOR_BUFFER_BIT) /* 触发渲染并读取像素 */ }
+const draw = (gl) => { gl.clear(gl.COLOR_BUFFER_BIT) /* 清屏，为后续绘制/像素读取做准备 */ }
 ```
 
 ## 媒体能力与 MIME
