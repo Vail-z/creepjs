@@ -37,7 +37,17 @@ const cssStyleDeclaration = (
       type == 'CSSRuleList.style' ? document.styleSheets[0].cssRules[0].style :
         undefined
 )
-const colors = ['ActiveBorder','ActiveCaption','Canvas','CanvasText', ...]
+const colors = [
+  'ActiveBorder','ActiveCaption','ActiveText','AppWorkspace','Background',
+  'ButtonBorder','ButtonFace','ButtonHighlight','ButtonShadow','ButtonText',
+  'Canvas','CanvasText','CaptionText','Field','FieldText','GrayText',
+  'Highlight','HighlightText','InactiveBorder','InactiveCaption',
+  'InactiveCaptionText','InfoBackground','InfoText','LinkText','Mark',
+  'MarkText','Menu','MenuText','Scrollbar','ThreeDDarkShadow','ThreeDFace',
+  'ThreeDHighlight','ThreeDLightShadow','ThreeDShadow','VisitedText',
+  'Window','WindowFrame','WindowText',
+  // 其余系统色值见源码完整列表
+]
 ```
 
 ## CSS 媒体特征（Media Queries）
@@ -52,7 +62,14 @@ const query = ({ body, type, rangeStart, rangeLen }) => {
   return getComputedStyle(body).getPropertyValue(`--device-${type}`).trim()
 }
 const matchMediaCSS = {
-  'prefers-color-scheme': matchMedia('(prefers-color-scheme: light)').matches ? 'light' : ...
+  'prefers-color-scheme': (
+    matchMedia('(prefers-color-scheme: light)').matches ? 'light' :
+      matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : undefined
+  ),
+  orientation: (
+    matchMedia('(orientation: landscape)').matches ? 'landscape' :
+      matchMedia('(orientation: portrait)').matches ? 'portrait' : undefined
+  ),
 }
 ```
 
@@ -91,7 +108,10 @@ const getBestRect = (el: Element) => {
 - **原理**：对 `Math.acos`/`Math.cos`/`Math.hypot` 等函数多次取值比较，若同一输入返回不一致则记为伪装。
 - **代码片段**（`src/math/index.ts`）：
 ```ts
-const check = ['acos','cos','hypot','pow', ...]
+const check = [
+  'acos','acosh','asin','asinh','atan','atanh','atan2','cbrt','cos','cosh',
+  'expm1','exp','hypot','log','log1p','log10','sin','sinh','sqrt','tan','tanh','pow',
+]
 check.forEach((prop) => {
   const res1 = Math[prop](...test)
   const res2 = Math[prop](...test)
@@ -128,7 +148,10 @@ const patternDiffs = [...pattern1].map((_, i) => pattern1[i] != pattern2[i])
 - **代码片段**（`src/webgl/index.ts`）：
 ```ts
 const getParamNames = () => [
-  'MAX_TEXTURE_SIZE','MAX_VIEWPORT_DIMS','SHADING_LANGUAGE_VERSION','VENDOR','RENDERER','VERSION', ...
+  'MAX_TEXTURE_SIZE','MAX_VIEWPORT_DIMS','SHADING_LANGUAGE_VERSION',
+  'VENDOR','RENDERER','VERSION','MAX_VERTEX_ATTRIBS','MAX_TEXTURE_IMAGE_UNITS',
+  'MAX_FRAGMENT_UNIFORM_VECTORS','MAX_RENDERBUFFER_SIZE','MAX_SAMPLES',
+  // 其余 WebGL getParameter 常量见源码完整列表
 ].sort()
 const draw = (gl) => { gl.clear(gl.COLOR_BUFFER_BIT) /* 触发渲染并读取像素 */ }
 ```
@@ -213,8 +236,9 @@ const dimensions = ''+el.getComputedTextLength()
 - **原理**：遍历大量 IANA 时区字符串，利用 `Intl.DateTimeFormat` 格式化结果确认系统时区并检测时区降级。
 - **代码片段**（`src/timezone/index.ts`）：
 ```ts
-const cities = ['UTC','GMT','Etc/GMT+0','Africa/Abidjan', ...]
-// 对每个城市创建 DateTimeFormat 并比较 offset
+const cities = ['UTC','GMT','Etc/GMT+0','Africa/Abidjan', /* ...其余时区见源码 */]
+const getOffset = (tz) => new Intl.DateTimeFormat('en', { timeZone: tz }).format(0)
+// 完整 IANA 名称列表见源码，逐个格式化用于比对偏移
 ```
 
 ## Intl 本地化指纹
