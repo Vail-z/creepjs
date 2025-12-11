@@ -88,7 +88,9 @@ for (const key in document.documentElement) {
 - **代码片段**（`src/screen/index.ts`）：
 ```ts
 const { width, height, availWidth, availHeight, colorDepth, pixelDepth } = window.screen
-const matchMediaLie = !matchMedia(`(device-width: ${width}px) and (device-height: ${height}px)`).matches
+const matchMediaLie = !matchMedia(
+  `(device-width: ${width}px) and (device-height: ${height}px)`,
+).matches
 const hasLiedDPR = !matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`).matches
 ```
 
@@ -97,10 +99,19 @@ const hasLiedDPR = !matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`).m
 - **代码片段**（`src/domrect/index.ts`）：
 ```ts
 const getBestRect = (el: Element) => {
-  if (!lieProps['Element.getClientRects']) return el.getClientRects()[0]
-  if (!lieProps['Element.getBoundingClientRect']) return el.getBoundingClientRect()
-  const range = DOC.createRange(); range.selectNode(el)
-  return range.getClientRects()[0]
+  let range
+  if (!lieProps['Element.getClientRects']) {
+    return el.getClientRects()[0]
+  } else if (!lieProps['Element.getBoundingClientRect']) {
+    return el.getBoundingClientRect()
+  } else if (!lieProps['Range.getClientRects']) {
+    range = DOC.createRange()
+    range.selectNode(el)
+    return range.getClientRects()[0]
+  }
+  range = DOC.createRange()
+  range.selectNode(el)
+  return range.getBoundingClientRect()
 }
 ```
 
@@ -115,7 +126,12 @@ const check = [
 check.forEach((prop) => {
   const res1 = Math[prop](...test)
   const res2 = Math[prop](...test)
-  if (isNaN(res1) ? !isNaN(res2) : res1 != res2) documentLie(`Math.${prop}`, 'expected x and got y')
+  const matching = isNaN(res1) && isNaN(res2) ? true : res1 == res2
+  if (!matching) {
+    lied = true
+    const mathLie = `expected x and got y`
+    documentLie(`Math.${prop}`, mathLie)
+  }
 })
 ```
 
